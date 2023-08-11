@@ -215,7 +215,31 @@ export default async function execute(client: Client, msg: string, rawMsg: strin
       const { rankTag } = processedPlayer;
 
       await chat(`/gc [${level}] ${rankTag} NW: ${networth} SA: ${sa}`);
-    }
+    }  else if (msg.includes('!sw') && msg.replace(/Guild > |:/g, '').split(' ').length <= 7) {
+      name = msg.split('!d ')[1]?.split(' ')[0];
+      uuid = await nameToUuid(name);
+      if (!uuid) {
+        await chat(`/gc Error: ${name} is an invalid IGN`);
+        return;
+      }
+      const playerRawResponse = await fetchPlayerRaw(uuid);
+      if (!playerRawResponse.success) {
+        await chat(`/gc Error: ${playerRawResponse.cause}`);
+        return;
+      }
+      const processedPlayer = processPlayer(playerRawResponse.player, ['skywars']);
+      const sw = processedPlayer.stats.Skywars;
+
+      
+      const star = sw?.star ?? 0;
+      const { rankTag } = processedPlayer;
+      const kdr = formatNumber(sw?.overall.kdr ?? 0);
+      const wlr = formatNumber(sw?.overall.wlr ?? 0);
+      const wins = formatNumber(sw?.overall.wins ?? 0);
+      const cws = formatNumber(sw?.overall.winstreaks.current.overall ?? 0);
+
+
+      await chat(`/gc [${star}✫] ${rankTag} W: ${wins} WLR: ${wlr} CWS: ${cws} KDR: ${kdr}`);
   } else if (msg.includes('Officer >')) {
     await ocWebhook.send({
       username: 'Dominance',
